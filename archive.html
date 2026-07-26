@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>શાર્દૂલ શિશુ વિહાર — શિક્ષક માર્ગદર્શિકા</title>
+<title>શાર્દૂલ શિશુ વિહાર — જૂના સપ્તાહ (શિક્ષક)</title>
 <link rel="icon" type="image/png" href="logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -45,6 +45,7 @@
   }
   header h1 { font-size: 1.4rem; font-weight: 700; }
   header .sub { font-size: 0.85rem; opacity: 0.92; margin-top: 2px; }
+  header a.back { color: #fff; opacity: 0.85; font-size: 0.82rem; }
 
   .group-switch {
     display: flex;
@@ -66,6 +67,42 @@
   }
   .group-btn.active { background: var(--saffron); color: #fff; }
   .group-btn .age { font-size: 0.72rem; font-weight: 400; display: block; }
+
+  .week-nav {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    position: sticky;
+    top: 0;
+    background: var(--cream);
+    z-index: 10;
+    border-bottom: 1px solid var(--border);
+  }
+  .week-nav button {
+    border: 1.5px solid var(--saffron);
+    background: var(--card);
+    color: var(--saffron-dark);
+    border-radius: 8px;
+    width: 40px;
+    height: 38px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .week-nav button:disabled { opacity: 0.3; cursor: default; }
+  .week-nav select {
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--saffron-dark);
+    border: 1.5px solid var(--saffron);
+    border-radius: 8px;
+    padding: 7px 10px;
+    background: var(--card);
+    max-width: 300px;
+  }
 
   main { max-width: 720px; margin: 0 auto; padding: 16px; }
 
@@ -138,7 +175,6 @@
     font-size: 0.8rem;
     padding: 20px 16px 28px;
   }
-  footer a { color: var(--muted); }
 </style>
 </head>
 <body>
@@ -146,18 +182,26 @@
 <header>
   <img class="logo" src="logo.png" alt="શાર્દૂલ શિશુ વિહાર લોગો">
   <h1 id="schoolName">શાર્દૂલ શિશુ વિહાર</h1>
-  <div class="sub" id="schoolSub">વડોદરા — શિક્ષક માર્ગદર્શિકા</div>
+  <div class="sub" id="schoolSub">વડોદરા — જૂના સપ્તાહ</div>
+  <div><a class="back" href="index.html">← ચાલુ સપ્તાહ પર પાછા</a></div>
 </header>
 
 <div class="group-switch" id="groupSwitch"></div>
 
+<div class="week-nav">
+  <button id="prevWeek" aria-label="પાછલું સપ્તાહ">‹</button>
+  <select id="weekSelect"></select>
+  <button id="nextWeek" aria-label="આગલું સપ્તાહ">›</button>
+</div>
+
 <main id="content"></main>
 
-<footer>શાર્દૂલ શિશુ વિહાર, વડોદરા · <a href="archive.html">જૂના સપ્તાહ</a></footer>
+<footer>શાર્દૂલ શિશુ વિહાર, વડોદરા</footer>
 
 <script>
 let CONFIG = null, WEEKS = [];
 let activeGroup = localStorage.getItem('as_group') || 'savaj_kesari';
+let activeWeekIdx = 0;
 
 const GU_DIGITS = "૦૧૨૩૪૫૬૭૮૯";
 const GU_MONTHS = {1:"જાન્યુઆરી",2:"ફેબ્રુઆરી",3:"માર્ચ",4:"એપ્રિલ",5:"મે",6:"જૂન",7:"જુલાઈ",8:"ઓગસ્ટ",9:"સપ્ટેમ્બર",10:"ઑક્ટોબર",11:"નવેમ્બર",12:"ડિસેમ્બર"};
@@ -185,19 +229,15 @@ function isCurrentWeek(w) {
   const end = new Date(w.end_date + "T23:59:59");
   return today >= start && today <= end;
 }
-function isFutureWeek(w) {
-  return new Date(w.start_date + "T00:00:00") > new Date();
-}
 
-// The week to feature: current week, else the latest already-started week,
-// else the earliest published (all-future edge case).
-function latestWeek() {
-  const cur = WEEKS.find(isCurrentWeek);
-  if (cur) return cur;
+function defaultWeekIdx() {
+  const today = new Date();
+  const cur = WEEKS.findIndex(isCurrentWeek);
+  if (cur >= 0) return cur;
   for (let i = WEEKS.length - 1; i >= 0; i--) {
-    if (!isFutureWeek(WEEKS[i])) return WEEKS[i];
+    if (new Date(WEEKS[i].start_date + "T00:00:00") <= today) return i;
   }
-  return WEEKS[0];
+  return 0;
 }
 
 function renderGroupSwitch() {
@@ -216,6 +256,16 @@ function renderGroupSwitch() {
   });
 }
 
+function renderWeekNav() {
+  const sel = document.getElementById('weekSelect');
+  sel.innerHTML = WEEKS.map((w, i) =>
+    `<option value="${i}">સપ્તાહ ${toGu(w.week)} — ${guDate(w.start_date)}${isCurrentWeek(w) ? ' (ચાલુ)' : ''}</option>`
+  ).join("");
+  sel.value = activeWeekIdx;
+  document.getElementById('prevWeek').disabled = activeWeekIdx <= 0;
+  document.getElementById('nextWeek').disabled = activeWeekIdx >= WEEKS.length - 1;
+}
+
 function fileLinks(files) {
   if (!files || !files.length) return "";
   return `<div>` + files.map(f =>
@@ -229,7 +279,7 @@ function renderWeek() {
     el.innerHTML = `<div class="empty">માર્ગદર્શિકા હજી પ્રકાશિત થઈ નથી.</div>`;
     return;
   }
-  const wk = latestWeek();
+  const wk = WEEKS[activeWeekIdx];
   const g = (wk.groups && wk.groups[activeGroup]) || {};
   let html = `
     <div class="week-banner">
@@ -271,6 +321,22 @@ function renderWeek() {
   el.innerHTML = html;
 }
 
+function goWeek(delta) {
+  const next = activeWeekIdx + delta;
+  if (next < 0 || next >= WEEKS.length) return;
+  activeWeekIdx = next;
+  renderWeekNav();
+  renderWeek();
+}
+
+document.getElementById('prevWeek').addEventListener('click', () => goWeek(-1));
+document.getElementById('nextWeek').addEventListener('click', () => goWeek(1));
+document.getElementById('weekSelect').addEventListener('change', e => {
+  activeWeekIdx = Number(e.target.value);
+  renderWeekNav();
+  renderWeek();
+});
+
 (async function init() {
   [CONFIG, WEEKS] = await Promise.all([
     loadJson('data/config.json', { school: {}, groups: [] }),
@@ -278,12 +344,14 @@ function renderWeek() {
   ]);
   WEEKS.sort((a, b) => a.week - b.week);
   if (CONFIG.school.name_gu) document.getElementById('schoolName').textContent = CONFIG.school.name_gu;
-  const sub = [CONFIG.school.city_gu, 'શિક્ષક માર્ગદર્શિકા'].filter(Boolean).join(" — ");
+  const sub = [CONFIG.school.city_gu, 'જૂના સપ્તાહ'].filter(Boolean).join(" — ");
   if (sub) document.getElementById('schoolSub').textContent = sub;
   if (!CONFIG.groups.some(g => g.id === activeGroup) && CONFIG.groups.length) {
     activeGroup = CONFIG.groups[0].id;
   }
+  activeWeekIdx = defaultWeekIdx();
   renderGroupSwitch();
+  renderWeekNav();
   renderWeek();
 })();
 </script>
