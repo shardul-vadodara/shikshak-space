@@ -94,5 +94,21 @@
         ]
       }
     }
+  },
+  {
+    "week": 7,
+    "start_date": "2026-07-27",
+    "end_date": "2026-08-02",
+    "title_gu": "ધ્વનિ અને શ્રવણ શક્તિ વિકાસ",
+    "groups": {
+      "savaj_kesari": {
+        "files": [
+          {
+            "label_gu": "શિક્ષક માર્ગદર્શિકા ચિત્ર (PNG)",
+            "path": "files/week7_savaj_kesari.png"
+          }
+        ]
+      }
+    }
   }
 ]
