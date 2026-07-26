@@ -197,7 +197,7 @@
 <footer>શાર્દૂલ શિશુ વિહાર, વડોદરા</footer>
 
 <script>
-let CONFIG = null, WEEKS = [];
+let CONFIG = null, WEEKS = [], WINDOW = [];
 let activeGroup = localStorage.getItem('as_group') || 'savaj_kesari';
 let activeWeekIdx = 0;
 
@@ -228,14 +228,28 @@ function isCurrentWeek(w) {
   return today >= start && today <= end;
 }
 
-function defaultWeekIdx() {
-  const today = new Date();
+function isFutureWeek(w) {
+  return new Date(w.start_date + "T00:00:00") > new Date();
+}
+
+// The week to center the window on: current week, else the latest
+// already-started week, else the earliest published (all-future edge case).
+function anchorIndex() {
   const cur = WEEKS.findIndex(isCurrentWeek);
   if (cur >= 0) return cur;
   for (let i = WEEKS.length - 1; i >= 0; i--) {
-    if (new Date(WEEKS[i].start_date + "T00:00:00") <= today) return i;
+    if (!isFutureWeek(WEEKS[i])) return i;
   }
   return 0;
+}
+
+// Builds WINDOW (past week, current week, next week) and returns the
+// index within it that the anchor week lands on.
+function computeWindow() {
+  const anchor = anchorIndex();
+  const start = Math.max(0, anchor - 1);
+  WINDOW = WEEKS.slice(start, anchor + 2);
+  return anchor - start;
 }
 
 function renderGroupSwitch() {
@@ -256,12 +270,12 @@ function renderGroupSwitch() {
 
 function renderWeekNav() {
   const sel = document.getElementById('weekSelect');
-  sel.innerHTML = WEEKS.map((w, i) =>
+  sel.innerHTML = WINDOW.map((w, i) =>
     `<option value="${i}">સપ્તાહ ${toGu(w.week)} — ${guDate(w.start_date)}${isCurrentWeek(w) ? ' (ચાલુ)' : ''}</option>`
   ).join("");
   sel.value = activeWeekIdx;
   document.getElementById('prevWeek').disabled = activeWeekIdx <= 0;
-  document.getElementById('nextWeek').disabled = activeWeekIdx >= WEEKS.length - 1;
+  document.getElementById('nextWeek').disabled = activeWeekIdx >= WINDOW.length - 1;
 }
 
 function fileLinks(files) {
@@ -273,11 +287,11 @@ function fileLinks(files) {
 
 function renderWeek() {
   const el = document.getElementById('content');
-  if (!WEEKS.length) {
+  if (!WINDOW.length) {
     el.innerHTML = `<div class="empty">માર્ગદર્શિકા હજી પ્રકાશિત થઈ નથી.</div>`;
     return;
   }
-  const wk = WEEKS[activeWeekIdx];
+  const wk = WINDOW[activeWeekIdx];
   const g = (wk.groups && wk.groups[activeGroup]) || {};
   let html = `
     <div class="week-banner">
@@ -321,7 +335,7 @@ function renderWeek() {
 
 function goWeek(delta) {
   const next = activeWeekIdx + delta;
-  if (next < 0 || next >= WEEKS.length) return;
+  if (next < 0 || next >= WINDOW.length) return;
   activeWeekIdx = next;
   renderWeekNav();
   renderWeek();
@@ -347,7 +361,7 @@ document.getElementById('weekSelect').addEventListener('change', e => {
   if (!CONFIG.groups.some(g => g.id === activeGroup) && CONFIG.groups.length) {
     activeGroup = CONFIG.groups[0].id;
   }
-  activeWeekIdx = defaultWeekIdx();
+  activeWeekIdx = computeWindow();
   renderGroupSwitch();
   renderWeekNav();
   renderWeek();
