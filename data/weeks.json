@@ -264,6 +264,10 @@
       "savaj_kesari": {
         "files": [
           {
+            "label_gu": "શિક્ષક માર્ગદર્શિકા PDF",
+            "path": "files/week12_savaj_kesari.pdf"
+          },
+          {
             "label_gu": "શિક્ષક માર્ગદર્શિકા ચિત્ર (PNG)",
             "path": "files/week12_savaj_kesari.png"
           }
