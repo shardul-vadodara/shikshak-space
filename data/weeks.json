@@ -323,10 +323,26 @@
     "week": 14,
     "start_date": "2026-09-14",
     "end_date": "2026-09-20",
-    "title_gu": "પ્રકૃતિ નિરીક્ષણ (વનસ્પતિ જગત)",
+    "title_gu": "ભાદરવો માસ: ગણેશ ચતુર્થી, પર્યુષણ-સંવત્સરી અને વિશ્વકર્મા જયંતિ",
     "groups": {
+      "mrigendra_pundarik": {
+        "files": [
+          {
+            "label_gu": "શિક્ષક માર્ગદર્શિકા PDF",
+            "path": "files/week14_mrigendra_pundarik.pdf"
+          },
+          {
+            "label_gu": "શિક્ષક માર્ગદર્શિકા ચિત્ર (PNG)",
+            "path": "files/week14_mrigendra_pundarik.png"
+          }
+        ]
+      },
       "savaj_kesari": {
         "files": [
+          {
+            "label_gu": "શિક્ષક માર્ગદર્શિકા PDF",
+            "path": "files/week14_savaj_kesari.pdf"
+          },
           {
             "label_gu": "શિક્ષક માર્ગદર્શિકા ચિત્ર (PNG)",
             "path": "files/week14_savaj_kesari.png"
